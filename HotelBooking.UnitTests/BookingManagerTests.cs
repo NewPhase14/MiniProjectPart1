@@ -1,9 +1,10 @@
 using System;
 using HotelBooking.Core;
-using HotelBooking.UnitTests.Fakes;
-using Xunit;
+using Moq;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Xunit;
 
 
 namespace HotelBooking.UnitTests
@@ -11,16 +12,51 @@ namespace HotelBooking.UnitTests
     public class BookingManagerTests
     {
         private IBookingManager bookingManager;
-        IRepository<Booking> bookingRepository;
+        private Mock<IRepository<Booking>> mockBookingRepository;
+        private Mock<IRepository<Room>> mockRoomRepository;
 
         public BookingManagerTests(){
-            DateTime start = DateTime.Today.AddDays(10);
-            DateTime end = DateTime.Today.AddDays(20);
-            bookingRepository = new FakeBookingRepository(start, end);
-            IRepository<Room> roomRepository = new FakeRoomRepository();
-            bookingManager = new BookingManager(bookingRepository, roomRepository);
+            mockBookingRepository = new Mock<IRepository<Booking>>();
+            mockRoomRepository = new Mock<IRepository<Room>>();
+            
+            var rooms = new List<Room>
+            {
+                new Room { Id = 1, Description = "Room A" },
+                new Room { Id = 2, Description = "Room B" }
+            };
+            mockRoomRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(rooms);
+            
+            DateTime startBookingA = DateTime.Today.AddDays(10);
+            DateTime endBookingA = DateTime.Today.AddDays(20);
+            DateTime startBookingB = DateTime.Today.AddDays(30);
+            DateTime endBookingB = DateTime.Today.AddDays(40);
+            var bookings = new List<Booking>
+            {
+                new Booking 
+                { 
+                    Id = 1, 
+                    RoomId = 1, 
+                    StartDate = startBookingA, 
+                    EndDate = endBookingA, 
+                    IsActive = true, 
+                    CustomerId = 1 
+                },
+                new Booking
+                {
+                    Id = 2,
+                    RoomId = 2,
+                    StartDate =  startBookingB,
+                    EndDate = endBookingB,
+                    IsActive = true,
+                    CustomerId = 2
+                }
+            };
+            mockBookingRepository.Setup(b => b.GetAllAsync()).ReturnsAsync(bookings);
+            
+            bookingManager = new BookingManager(mockBookingRepository.Object, mockRoomRepository.Object);
         }
 
+     
         [Fact]
         public async Task FindAvailableRoom_StartDateNotInTheFuture_ThrowsArgumentException()
         {
@@ -48,16 +84,13 @@ namespace HotelBooking.UnitTests
         [Fact]
         public async Task FindAvailableRoom_RoomAvailable_ReturnsAvailableRoom()
         {
-            // This test was added to satisfy the following test design
-            // principle: "Tests should have strong assertions".
-
             // Arrange
             DateTime date = DateTime.Today.AddDays(1);
             
             // Act
             int roomId = await bookingManager.FindAvailableRoom(date, date);
 
-            var bookingForReturnedRoomId = (await bookingRepository.GetAllAsync()).
+            var bookingForReturnedRoomId = (await mockBookingRepository.Object.GetAllAsync()).
                 Where(b => b.RoomId == roomId
                            && b.StartDate <= date
                            && b.EndDate >= date
@@ -66,6 +99,6 @@ namespace HotelBooking.UnitTests
             // Assert
             Assert.Empty(bookingForReturnedRoomId);
         }
-
+        
     }
 }
