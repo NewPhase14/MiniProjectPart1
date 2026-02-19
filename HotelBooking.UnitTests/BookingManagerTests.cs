@@ -28,8 +28,8 @@ namespace HotelBooking.UnitTests
             
             DateTime startBookingA = DateTime.Today.AddDays(10);
             DateTime endBookingA = DateTime.Today.AddDays(20);
-            DateTime startBookingB = DateTime.Today.AddDays(30);
-            DateTime endBookingB = DateTime.Today.AddDays(40);
+            DateTime startBookingB = DateTime.Today.AddDays(10);
+            DateTime endBookingB = DateTime.Today.AddDays(19);
             var bookings = new List<Booking>
             {
                 new Booking 
@@ -100,5 +100,83 @@ namespace HotelBooking.UnitTests
             Assert.Empty(bookingForReturnedRoomId);
         }
         
+        [Fact]
+        public async Task FindAvailableRoom_RoomAvailable_ReturnsRoomId2()
+        {
+            // Arrange
+            DateTime startDate = DateTime.Today.AddDays(20);
+            DateTime endDate = DateTime.Today.AddDays(30);
+
+            // Act
+            int roomId = await bookingManager.FindAvailableRoom(startDate, endDate);
+
+            // Assert
+            Assert.Equal(2, roomId);
+        }
+        
+        
+        
+        [Fact]
+        public async Task CreateBooking_RoomAvailable_ReturnsFalse()
+        {
+            // Arrange
+            DateTime startDate = DateTime.Today.AddDays(10);
+            DateTime endDate = DateTime.Today.AddDays(20);
+            Booking booking = new Booking { StartDate = startDate, EndDate = endDate, CustomerId = 1 };
+
+            // Act
+            bool result = await bookingManager.CreateBooking(booking);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task CreateBooking_RoomAvailable_ReturnsTrue()
+        {
+            // Arrange
+            DateTime startDate = DateTime.Today.AddDays(1);
+            DateTime endDate = DateTime.Today.AddDays(2);
+            Booking booking = new Booking { StartDate = startDate, EndDate = endDate, CustomerId = 1 };
+
+            // Act
+            bool result = await bookingManager.CreateBooking(booking);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task GetFullyOccupiedDates_Between1And30_Returns11Days()
+        {
+            // Arrange
+            DateTime startDate = DateTime.Today.AddDays(1);
+            DateTime endDate = DateTime.Today.AddDays(30);
+            
+            // Act
+            List<DateTime> fullyOccupiedDates = await bookingManager.GetFullyOccupiedDates(startDate, endDate);
+            
+            // Assert
+            var expected = Enumerable.Range(10, 10)
+                .Select(i => DateTime.Today.AddDays(i).Date)
+                .ToList();
+
+            Assert.Equal(expected, fullyOccupiedDates.Select(d => d.Date).ToList());
+        }
+
+        [Fact]
+        public async Task GetFullyOccupiedDates_Between1And2_ReturnsEmptyList()
+        {
+            // Arrange
+            DateTime startDate = DateTime.Today.AddDays(1);
+            DateTime endDate = DateTime.Today.AddDays(2);
+
+            // Act
+            List<DateTime> fullyOccupiedDates = await bookingManager.GetFullyOccupiedDates(startDate, endDate);
+
+            // Assert
+            Assert.Empty(fullyOccupiedDates);
+
+        }
     }
 }
