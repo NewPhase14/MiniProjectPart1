@@ -99,25 +99,20 @@ namespace HotelBooking.UnitTests
             // Assert
             Assert.Empty(bookingForReturnedRoomId);
         }
-        
+
         [Fact]
-        public async Task FindAvailableRoom_RoomAvailable_ReturnsRoomId2()
+        public async Task FindAvailableRoom_NoRoomsAvailable_ReturnsMinusOne()
         {
             // Arrange
-            DateTime startDate = DateTime.Today.AddDays(20);
-            DateTime endDate = DateTime.Today.AddDays(30);
-
+            DateTime date = DateTime.Today.AddDays(10);
             // Act
-            int roomId = await bookingManager.FindAvailableRoom(startDate, endDate);
-
+            int roomId = await bookingManager.FindAvailableRoom(date, date);
             // Assert
-            Assert.Equal(2, roomId);
+            Assert.Equal(-1, roomId);
         }
         
-        
-        
         [Fact]
-        public async Task CreateBooking_RoomAvailable_ReturnsFalse()
+        public async Task CreateBooking_CantCreateBooking_ReturnsFalse()
         {
             // Arrange
             DateTime startDate = DateTime.Today.AddDays(10);
@@ -132,7 +127,7 @@ namespace HotelBooking.UnitTests
         }
 
         [Fact]
-        public async Task CreateBooking_RoomAvailable_ReturnsTrue()
+        public async Task CreateBooking_CanCreateBooking_ReturnsTrue()
         {
             // Arrange
             DateTime startDate = DateTime.Today.AddDays(1);
