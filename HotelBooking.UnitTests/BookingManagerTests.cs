@@ -145,6 +145,23 @@ namespace HotelBooking.UnitTests
             // Assert
             Assert.True(result);
         }
+        
+        [Fact]
+        public async Task CreateBooking_WhenSuccessfullyCreated_SetsIsActiveToTrue()
+        {
+            // Arrange
+            DateTime startDate = DateTime.Today.AddDays(1);
+            DateTime endDate = DateTime.Today.AddDays(2);
+            Booking booking = new Booking { StartDate = startDate, EndDate = endDate, CustomerId = 1 };
+
+            // Act
+            await bookingManager.CreateBooking(booking);
+
+            // Assert
+            Assert.True(booking.IsActive);
+        }
+        
+        
 
         [Fact]
         public async Task GetFullyOccupiedDates_Between1And30_Returns11Days()
@@ -177,6 +194,20 @@ namespace HotelBooking.UnitTests
             // Assert
             Assert.Empty(fullyOccupiedDates);
 
+        }
+        
+        [Fact]
+        public async Task GetFullyOccupiedDates_StartDateAfterEndDate_ThrowsArgumentException()
+        {
+            // Arrange
+            DateTime startDate = DateTime.Today.AddDays(10);
+            DateTime endDate = DateTime.Today.AddDays(5);
+
+            // Act
+            Task result() => bookingManager.GetFullyOccupiedDates(startDate, endDate);
+
+            // Assert
+            await Assert.ThrowsAsync<ArgumentException>(result);
         }
     }
 }
