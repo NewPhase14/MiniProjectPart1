@@ -156,7 +156,29 @@ namespace HotelBooking.UnitTests
             Assert.True(booking.IsActive);
         }
         
-        
+        [Theory]
+        [InlineData(1, 2)]
+        [InlineData(2, 3)]
+        [InlineData(3, 5)]
+        public async Task CreateBooking_ValidDates_ReturnsTrue(int startOffset, int endOffset)
+        {
+            // Arrange
+            DateTime startDate = DateTime.Today.AddDays(startOffset);
+            DateTime endDate = DateTime.Today.AddDays(endOffset);
+
+            Booking booking = new Booking
+            {
+                StartDate = startDate,
+                EndDate = endDate,
+                CustomerId = 1
+            };
+
+            // Act
+            bool result = await bookingManager.CreateBooking(booking);
+
+            // Assert
+            Assert.True(result);
+        }
 
         [Fact]
         public async Task GetFullyOccupiedDates_Between1And30_Returns11Days()
